@@ -29,8 +29,8 @@ def send_message(message, destination, interface):
         except Exception as e:
             logging.info(f"REPLY SEND ERROR {e.message}")
 
-        
-        time.sleep(2)
+        # Increased delay between chunks from 2 sec to 5 sec to avoid out-of-order messages 
+        time.sleep(5)
 
 
 def get_node_info(interface, short_name):
@@ -53,6 +53,11 @@ def get_node_short_name(node_id, interface):
         return node_info['user']['shortName']
     return None
 
+def get_node_long_name(node_id, interface):
+    node_info = interface.nodes.get(node_id)
+    if node_info:
+        return node_info['user']['longName']
+    return None
 
 def send_bulletin_to_bbs_nodes(board, sender_short_name, subject, content, unique_id, bbs_nodes, interface):
     message = f"BULLETIN|{board}|{sender_short_name}|{subject}|{content}|{unique_id}"

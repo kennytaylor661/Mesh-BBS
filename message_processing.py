@@ -10,9 +10,9 @@ from command_handlers import (
     handle_check_bulletin_command, handle_read_bulletin_command, handle_read_channel_command,
     handle_post_channel_command, handle_list_channels_command, handle_quick_help_command
 )
-from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel
+from db_operations import add_bulletin, add_mail, delete_bulletin, delete_mail, get_db_connection, add_channel, add_recent_caller
 from js8call_integration import handle_js8call_command, handle_js8call_steps, handle_group_message_selection
-from utils import get_user_state, get_node_short_name, get_node_id_from_num, send_message
+from utils import get_user_state, get_node_short_name, get_node_long_name, get_node_id_from_num, send_message
 
 main_menu_handlers = {
     "q": handle_quick_help_command,
@@ -186,6 +186,7 @@ def on_receive(packet, interface):
             sender_node_id = packet['fromId']
 
             sender_short_name = get_node_short_name(sender_node_id, interface)
+            sender_long_name = get_node_long_name(sender_node_id, interface)
             receiver_short_name = get_node_short_name(get_node_id_from_num(to_id, interface),
                                                       interface) if to_id else "Group Chat"
             logging.info(f"Received message from user '{sender_short_name}' ({sender_node_id}) to {receiver_short_name}: {message_string}")
@@ -200,6 +201,9 @@ def on_receive(packet, interface):
                 else:
                     logging.info("Ignoring non-sync message from known BBS node")
             elif to_id is not None and to_id != 0 and to_id != 255 and to_id == interface.myInfo.my_node_num:
+                # Update recent callers list
+                add_recent_caller(sender_short_name, sender_long_name)
+                # Process message
                 process_message(sender_id, message_string, interface, is_sync_message=False)
             else:
                 logging.info("Ignoring message sent to group chat or from unknown node")
