@@ -48,6 +48,13 @@ def initialize_database():
                     name TEXT NOT NULL,
                     url TEXT NOT NULL
                 );''')
+    # Add table for recent callers
+    c.execute('''CREATE TABLE IF NOT EXISTS recent_callers (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    access_date TEXT NOT NULL,
+                    node_short_name TEXT NOT NULL,
+                    node_long_name TEXT NULL
+                );''')
     conn.commit()
     print("Database schema initialized.")
 
@@ -66,8 +73,6 @@ def get_channels():
     c = conn.cursor()
     c.execute("SELECT name, url FROM channels")
     return c.fetchall()
-
-
 
 def add_bulletin(board, sender_short_name, subject, content, bbs_nodes, interface, unique_id=None):
     conn = get_db_connection()
@@ -89,7 +94,6 @@ def add_bulletin(board, sender_short_name, subject, content, bbs_nodes, interfac
 
     return unique_id
 
-
 def get_bulletins(board):
     conn = get_db_connection()
     c = conn.cursor()
@@ -101,7 +105,6 @@ def get_bulletin_content(bulletin_id):
     c = conn.cursor()
     c.execute("SELECT sender_short_name, date, subject, content, unique_id FROM bulletins WHERE id = ?", (bulletin_id,))
     return c.fetchone()
-
 
 def delete_bulletin(bulletin_id, bbs_nodes, interface):
     conn = get_db_connection()
