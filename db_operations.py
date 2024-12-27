@@ -33,6 +33,7 @@ def initialize_database():
                     content TEXT NOT NULL,
                     unique_id TEXT NOT NULL
                 )''')
+
     c.execute('''CREATE TABLE IF NOT EXISTS mail (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     sender TEXT NOT NULL,
@@ -43,11 +44,13 @@ def initialize_database():
                     content TEXT NOT NULL,
                     unique_id TEXT NOT NULL
                 );''')
+
     c.execute('''CREATE TABLE IF NOT EXISTS channels (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     url TEXT NOT NULL
                 );''')
+
     # Add table for recent callers
     c.execute('''CREATE TABLE IF NOT EXISTS recent_callers (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,6 +61,36 @@ def initialize_database():
     conn.commit()
     print("Database schema initialized.")
 
+    print("Testing recent caller addition")
+    add_recent_caller("KTTD", "Kenny T-Deck")
+    print("Testing recent caller query")
+    get_last_callers()
+
+# Return a list of the 5 most recent callers
+def get_last_callers():
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    # Get the 5 most recent callers
+    c.execute('''SELECT access_date, node_short_name, node_long_name
+                FROM recent_callers
+                ORDER BY access_date desc;''')
+    return c.fetchall()
+
+
+# Update recent caller list
+def add_recent_caller(short_name, long_name):
+    conn = get_db_connection()
+    c = conn.cursor()
+
+    # Delete existing entries for this short_name
+    c.execute("DELETE FROM recent_callers WHERE node_short_name = ?", (short_name,))
+
+    # Add new row for this short_name using the current time
+    c.execute("INSERT INTO recent_callers (access_date, node_short_name, node_long_name) VALUES (datetime(), ?, ?)", (short_name, long_name))
+
+    conn.commit()
+
 def add_channel(name, url, bbs_nodes=None, interface=None):
     conn = get_db_connection()
     c = conn.cursor()
@@ -66,7 +99,6 @@ def add_channel(name, url, bbs_nodes=None, interface=None):
 
     if bbs_nodes and interface:
         send_channel_to_bbs_nodes(name, url, bbs_nodes, interface)
-
 
 def get_channels():
     conn = get_db_connection()
