@@ -61,8 +61,13 @@ def handle_help_command(sender_id, interface, menu_name=None):
             response = build_menu(utilities_menu_items, "🛠️Utilities Menu🛠️")
     else:
         update_user_state(sender_id, {'command': 'MAIN_MENU', 'step': 1})  # Reset to main menu state
+
+        # Send greeting #1
         mail = get_mail(get_node_id_from_num(sender_id, interface))
-        response = build_menu(main_menu_items, f"💾TC² BBS💾 (✉️:{len(mail)})")
+        send_message(f"💾Bakersfield BBS💾 (✉️:{len(mail)})\n\nYou made it!  Welcome!\n", sender_id, interface)
+
+        # Send menu (without header)
+        response = build_menu(main_menu_items, "Main Menu\n")
     send_message(response, sender_id, interface)
 
 def get_node_name(node_id, interface):
