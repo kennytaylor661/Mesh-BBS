@@ -61,13 +61,8 @@ def initialize_database():
     conn.commit()
     print("Database schema initialized.")
 
-    print("Testing recent caller addition")
-    add_recent_caller("KTTD", "Kenny T-Deck")
-    print("Testing recent caller query")
-    get_last_callers()
-
 # Return a list of the 5 most recent callers
-def get_last_callers():
+def get_recent_callers():
     conn = get_db_connection()
     c = conn.cursor()
 

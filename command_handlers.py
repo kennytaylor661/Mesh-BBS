@@ -1,15 +1,18 @@
 import configparser
 import logging
+import pytz
 import random
 import time
 
+from datetime import datetime, timezone
 from meshtastic import BROADCAST_NUM
 
 from db_operations import (
     add_bulletin, add_mail, delete_mail,
     get_bulletin_content, get_bulletins,
     get_mail, get_mail_content,
-    add_channel, get_channels, get_sender_id_by_mail_id
+    add_channel, get_channels, get_sender_id_by_mail_id,
+    get_recent_callers
 )
 from utils import (
     get_node_id_from_num, get_node_info,
@@ -64,7 +67,26 @@ def handle_help_command(sender_id, interface, menu_name=None):
 
         # Send greeting #1
         mail = get_mail(get_node_id_from_num(sender_id, interface))
-        send_message(f"💾Bakersfield BBS💾 (✉️:{len(mail)})\n\nYou made it!  Welcome!\n", sender_id, interface)
+        send_message(f"💾 Bakersfield BBS 💾 (✉️:{len(mail)})\n\nYou made it!  Welcome!\n", sender_id, interface)
+
+        # Fetch and send recent caller list
+        recents = get_recent_callers()
+        #print("Recent callers:")
+        recents_message = "Last callers:\n\n"
+        for row in recents:
+            date = datetime.fromisoformat(row[0])
+            date.replace(tzinfo=timezone.utc)
+            date = date.astimezone(pytz.timezone("America/Los_Angeles"))
+            date = date.strftime("%m/%d %I:%M %p")
+            print("    ", date, "   [", row[1], "] ", row[2])
+            #date = row[0].split("-")[1] + "/" + row[0].split("-")[2].split(" ")[0]
+            recents_message += date
+            recents_message += "   ["
+            recents_message += row[1]
+            recents_message += "] "
+            recents_message += row[2]
+            recents_message += "\n"
+        send_message(recents_message, sender_id, interface)
 
         # Send menu (without header)
         response = build_menu(main_menu_items, "Main Menu\n")
